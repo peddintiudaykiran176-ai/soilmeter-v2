@@ -22,7 +22,14 @@ if (clientIpHeader && !/^[a-z0-9-]+$/.test(clientIpHeader)) {
   throw new Error("AUTH_CLIENT_IP_HEADER must be a valid HTTP header name.");
 }
 
-const parsedBaseURL = new URL(baseURL);
+let parsedBaseURL: URL;
+try {
+  parsedBaseURL = new URL(baseURL);
+} catch {
+  throw new Error(
+    "BETTER_AUTH_URL must be a valid absolute URL. Set it in Netlify to your canonical site URL, for example https://your-site.netlify.app, without quotes or comments.",
+  );
+}
 if (
   (parsedBaseURL.protocol !== "http:" && parsedBaseURL.protocol !== "https:") ||
   (process.env.NODE_ENV === "production" && parsedBaseURL.protocol !== "https:")
@@ -30,9 +37,9 @@ if (
   throw new Error("BETTER_AUTH_URL must use HTTPS in production and HTTP(S) in development.");
 }
 
-const baseOrigin = parsedBaseURL.origin;
+export const authBaseOrigin = parsedBaseURL.origin;
 const trustedOrigins = [
-  baseOrigin,
+  authBaseOrigin,
   ...(process.env.NODE_ENV === "development" ? ["http://localhost:3000"] : []),
 ];
 

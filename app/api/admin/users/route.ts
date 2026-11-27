@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { db } from "@/index";
 import { user as userTable } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { auth, authBaseOrigin } from "@/lib/auth";
 import { canAssignRole, canManageUser } from "@/lib/auth/authorization";
 
 export async function GET() {
@@ -36,10 +36,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const expectedOrigin = process.env.BETTER_AUTH_URL
-    ? new URL(process.env.BETTER_AUTH_URL).origin
-    : null;
-  if (!expectedOrigin || request.headers.get("origin") !== expectedOrigin) {
+  if (request.headers.get("origin") !== authBaseOrigin) {
     return Response.json({ error: "Forbidden." }, { status: 403 });
   }
 

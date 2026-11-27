@@ -1,0 +1,149 @@
+{
+  "type": "diff",
+  "version": "10",
+  "dialect": "postgres",
+  "id": "81cde023-5927-4333-bff4-65e06980f739",
+  "prevIds": [
+    "3b1738d0-428b-410e-b081-c50256d16a2c"
+  ],
+  "footprints": [
+    {
+      "statementType": "drop_check",
+      "statementTarget": [
+        "table",
+        "public",
+        "soil_telemetry"
+      ],
+      "writes": [
+        "s|ck|public.soil_telemetry.soil_telemetry_latitude_range",
+        "n|ck|public.soil_telemetry.soil_telemetry_latitude_range",
+        "e|ck|public.soil_telemetry.soil_telemetry_latitude_range",
+        "n|con|public.soil_telemetry.soil_telemetry_latitude_range"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public",
+        "e|col|public.soil_telemetry.latitude"
+      ]
+    },
+    {
+      "statementType": "drop_check",
+      "statementTarget": [
+        "table",
+        "public",
+        "soil_telemetry"
+      ],
+      "writes": [
+        "s|ck|public.soil_telemetry.soil_telemetry_longitude_range",
+        "n|ck|public.soil_telemetry.soil_telemetry_longitude_range",
+        "e|ck|public.soil_telemetry.soil_telemetry_longitude_range",
+        "n|con|public.soil_telemetry.soil_telemetry_longitude_range"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public",
+        "e|col|public.soil_telemetry.longitude"
+      ]
+    },
+    {
+      "statementType": "drop_check",
+      "statementTarget": [
+        "table",
+        "public",
+        "soil_telemetry"
+      ],
+      "writes": [
+        "s|ck|public.soil_telemetry.soil_telemetry_coordinates_pair",
+        "n|ck|public.soil_telemetry.soil_telemetry_coordinates_pair",
+        "e|ck|public.soil_telemetry.soil_telemetry_coordinates_pair",
+        "n|con|public.soil_telemetry.soil_telemetry_coordinates_pair"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public",
+        "e|col|public.soil_telemetry.latitude",
+        "e|col|public.soil_telemetry.longitude"
+      ]
+    },
+    {
+      "statementType": "drop_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "soil_telemetry",
+        "latitude"
+      ],
+      "writes": [
+        "s|col|public.soil_telemetry.latitude",
+        "n|col|public.soil_telemetry.latitude",
+        "e|col|public.soil_telemetry.latitude"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "drop_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "soil_telemetry",
+        "longitude"
+      ],
+      "writes": [
+        "s|col|public.soil_telemetry.longitude",
+        "n|col|public.soil_telemetry.longitude",
+        "e|col|public.soil_telemetry.longitude"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "drop_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "soil_telemetry",
+        "field_name"
+      ],
+      "writes": [
+        "s|col|public.soil_telemetry.field_name",
+        "n|col|public.soil_telemetry.field_name",
+        "e|col|public.soil_telemetry.field_name"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"soil_telemetry\",\"latitude\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"soil_telemetry\",\"longitude\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"soil_telemetry\",\"field_name\"]"
+    },
+    {
+      "op": "drop",
+      "key": "checks\u0000[\"public\",\"soil_telemetry\",\"soil_telemetry_latitude_range\"]"
+    },
+    {
+      "op": "drop",
+      "key": "checks\u0000[\"public\",\"soil_telemetry\",\"soil_telemetry_longitude_range\"]"
+    },
+    {
+      "op": "drop",
+      "key": "checks\u0000[\"public\",\"soil_telemetry\",\"soil_telemetry_coordinates_pair\"]"
+    }
+  ]
+}

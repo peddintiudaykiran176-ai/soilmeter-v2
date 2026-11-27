@@ -73,10 +73,7 @@ export function validateTelemetryResponse(value: unknown): value is {
         typeof row.deviceId === "string" &&
         typeof row.message === "string" &&
         (typeof row.createdAt === "string" || row.createdAt === null) &&
-        (typeof row.moisture === "number" || row.moisture === null) &&
-        (typeof row.latitude === "number" || row.latitude === null) &&
-        (typeof row.longitude === "number" || row.longitude === null) &&
-        (typeof row.fieldName === "string" || row.fieldName === null),
+        (typeof row.moisture === "number" || row.moisture === null),
     )
   );
 }

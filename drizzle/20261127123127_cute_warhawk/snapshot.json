@@ -1,0 +1,85 @@
+{
+  "type": "diff",
+  "version": "10",
+  "dialect": "postgres",
+  "id": "3b1738d0-428b-410e-b081-c50256d16a2c",
+  "prevIds": [
+    "36aec5b5-b0f7-4bb7-a5b2-d345de734511"
+  ],
+  "footprints": [
+    {
+      "statementType": "drop_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "soil_telemetry"
+      ],
+      "writes": [
+        "s|fk|public.soil_telemetry.soil_telemetry_user_id_user_id_fkey",
+        "n|fk|public.soil_telemetry.soil_telemetry_user_id_user_id_fkey",
+        "e|fk|public.soil_telemetry.soil_telemetry_user_id_user_id_fkey",
+        "n|con|public.soil_telemetry.soil_telemetry_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public",
+        "e|col|public.soil_telemetry.user_id"
+      ]
+    },
+    {
+      "statementType": "drop_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "soil_telemetry",
+        "soil_telemetry_user_device_created_idx"
+      ],
+      "writes": [
+        "s|idx|public.soil_telemetry_user_device_created_idx",
+        "n|idx|public.soil_telemetry_user_device_created_idx",
+        "e|idx|public.soil_telemetry_user_device_created_idx",
+        "n|rel|public.soil_telemetry_user_device_created_idx"
+      ],
+      "reads": [
+        "e|tbl|public.soil_telemetry",
+        "n|sch|public",
+        "e|col|public.soil_telemetry.user_id",
+        "e|col|public.soil_telemetry.device_id",
+        "e|col|public.soil_telemetry.created_at"
+      ],
+      "sharedWrites": []
+    },
+    {
+      "statementType": "drop_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "soil_telemetry",
+        "user_id"
+      ],
+      "writes": [
+        "s|col|public.soil_telemetry.user_id",
+        "n|col|public.soil_telemetry.user_id",
+        "e|col|public.soil_telemetry.user_id"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"soil_telemetry\",\"user_id\"]"
+    },
+    {
+      "op": "drop",
+      "key": "indexes\u0000[\"public\",\"soil_telemetry_user_device_created_idx\"]"
+    },
+    {
+      "op": "drop",
+      "key": "fks\u0000[\"public\",\"soil_telemetry\",\"soil_telemetry_user_id_user_id_fkey\"]"
+    }
+  ]
+}

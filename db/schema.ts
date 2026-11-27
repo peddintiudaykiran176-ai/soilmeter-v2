@@ -103,33 +103,11 @@ export const rateLimit = pgTable("rateLimit", {
 
 export const soilTelemetry = pgTable("soil_telemetry", {
   id: bigserial("id", { mode: "bigint" }).primaryKey(),
-  userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
   deviceId: varchar("device_id", { length: 128 }).notNull(),
   message: text("message").notNull(),
   moisture: doublePrecision("moisture"),
-  latitude: doublePrecision("latitude"),
-  longitude: doublePrecision("longitude"),
-  fieldName: varchar("field_name", { length: 100 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-}, (table) => [
-  index("soil_telemetry_user_device_created_idx").on(
-    table.userId,
-    table.deviceId,
-    table.createdAt,
-  ),
-  check(
-    "soil_telemetry_latitude_range",
-    sql`${table.latitude} IS NULL OR (${table.latitude} >= -90 AND ${table.latitude} <= 90)`,
-  ),
-  check(
-    "soil_telemetry_longitude_range",
-    sql`${table.longitude} IS NULL OR (${table.longitude} >= -180 AND ${table.longitude} <= 180)`,
-  ),
-  check(
-    "soil_telemetry_coordinates_pair",
-    sql`(${table.latitude} IS NULL AND ${table.longitude} IS NULL) OR (${table.latitude} IS NOT NULL AND ${table.longitude} IS NOT NULL)`,
-  ),
-]);
+});
 
 export const devices = pgTable(
   "devices",

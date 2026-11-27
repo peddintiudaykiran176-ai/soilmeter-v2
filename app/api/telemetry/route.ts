@@ -5,10 +5,8 @@ import {
   eq,
   gte,
   inArray,
-  isNull,
   lte,
   lt,
-  or,
   type SQL,
 } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -68,14 +66,6 @@ function parseInstant(value: string | null): Date | null | undefined {
   return Number.isFinite(date.getTime()) ? date : undefined;
 }
 
-function isValidLatitude(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value) && value >= -90 && value <= 90;
-}
-
-function isValidLongitude(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value) && value >= -180 && value <= 180;
-}
-
 function isValidMoisture(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100;
 }
@@ -97,13 +87,7 @@ function getTelemetryAccessCondition(userId: string): SQL {
     .select({ deviceId: devices.deviceId })
     .from(devices)
     .where(eq(devices.userId, userId));
-  const condition = or(
-    eq(soilTelemetry.userId, userId),
-    and(
-      isNull(soilTelemetry.userId),
-      inArray(soilTelemetry.deviceId, registeredDeviceIds),
-    ),
-  );
+  const condition = inArray(soilTelemetry.deviceId, registeredDeviceIds);
   if (!condition) {
     throw new Error("Unable to establish telemetry access for this user.");
   }
@@ -124,9 +108,6 @@ export async function GET(request: Request) {
         db
           .selectDistinctOn([soilTelemetry.deviceId], {
             deviceId: soilTelemetry.deviceId,
-            fieldName: soilTelemetry.fieldName,
-            latitude: soilTelemetry.latitude,
-            longitude: soilTelemetry.longitude,
             moisture: soilTelemetry.moisture,
             message: soilTelemetry.message,
             createdAt: soilTelemetry.createdAt,
@@ -161,18 +142,12 @@ export async function GET(request: Request) {
           ...telemetryDevices.map((device) => ({
             ...device,
             fieldName:
-              registeredById.get(device.deviceId)?.fieldName ??
-              device.fieldName ??
-              null,
+              registeredById.get(device.deviceId)?.fieldName ?? null,
             cropType: registeredById.get(device.deviceId)?.cropType ?? null,
             latitude:
-              device.latitude ??
-              registeredById.get(device.deviceId)?.latitude ??
-              null,
+              registeredById.get(device.deviceId)?.latitude ?? null,
             longitude:
-              device.longitude ??
-              registeredById.get(device.deviceId)?.longitude ??
-              null,
+              registeredById.get(device.deviceId)?.longitude ?? null,
             status: registeredById.get(device.deviceId)?.status ?? null,
             createdAt: device.createdAt?.toISOString() ?? null,
           })),
@@ -276,14 +251,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const session = await getSession(request);
-    if (!session) {
-      return jsonResponse(
-        { success: false, error: "Authentication required" },
-        401,
-      );
-    }
-
     let body: unknown;
     try {
       body = await request.json();
@@ -302,16 +269,10 @@ export async function POST(request: Request) {
       device_id,
       message,
       moisture = null,
-      latitude = null,
-      longitude = null,
-      field_name = null,
     } = body as {
       device_id?: unknown;
       message?: unknown;
       moisture?: unknown;
-      latitude?: unknown;
-      longitude?: unknown;
-      field_name?: unknown;
     };
     if (
       typeof device_id !== "string" ||
@@ -339,38 +300,13 @@ export async function POST(request: Request) {
         400,
       );
     }
-    const hasValidCoordinates =
-      isValidLatitude(latitude) && isValidLongitude(longitude);
-    const hasNoCoordinates = latitude === null && longitude === null;
-    if (
-      (!hasValidCoordinates && !hasNoCoordinates) ||
-      (field_name !== null &&
-        (typeof field_name !== "string" ||
-          field_name.trim().length === 0 ||
-          field_name.trim().length > 100))
-    ) {
-      return jsonResponse(
-        {
-          success: false,
-          error:
-            "Provide both valid GPS coordinates (latitude -90 to 90, longitude -180 to 180) and an optional field_name up to 100 characters.",
-        },
-        400,
-      );
-    }
-    const storedLatitude = hasValidCoordinates ? latitude : null;
-    const storedLongitude = hasValidCoordinates ? longitude : null;
 
     const [row] = await db
       .insert(soilTelemetry)
       .values({
-        userId: session.user.id,
         deviceId: device_id.trim(),
         message: message.trim(),
         moisture,
-        latitude: storedLatitude,
-        longitude: storedLongitude,
-        fieldName: typeof field_name === "string" ? field_name.trim() : null,
       })
       .returning();
 

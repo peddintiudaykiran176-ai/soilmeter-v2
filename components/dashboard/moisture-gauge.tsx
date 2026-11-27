@@ -6,7 +6,7 @@ const CENTER_X = 120;
 const CENTER_Y = 112;
 const OUTER_RADIUS = 100;
 const INNER_RADIUS = 57;
-const SCORE_COLORS = ["#138a35", "#e7d926", "#f39818", "#e7473d"] as const;
+const SCORE_COLORS = ["#e7473d",  "#f39818", "#e7d926", "#138a35"] as const;
 
 function pointAt(radius: number, degrees: number) {
   const radians = (degrees * Math.PI) / 180;

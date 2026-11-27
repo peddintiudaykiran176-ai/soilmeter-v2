@@ -1,0 +1,44 @@
+{
+  "type": "diff",
+  "version": "10",
+  "dialect": "postgres",
+  "id": "d7cd54b6-ba46-4253-b24d-962758fbb7a6",
+  "prevIds": [
+    "8c36c673-ebf8-4f01-a098-f933d24383cc"
+  ],
+  "footprints": [
+    {
+      "statementType": "recreate_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "verification",
+        "verification_identifier_idx"
+      ],
+      "writes": [
+        "s|idx|public.verification_identifier_idx",
+        "n|idx|public.verification_identifier_idx",
+        "e|idx|public.verification_identifier_idx",
+        "n|rel|public.verification_identifier_idx"
+      ],
+      "reads": [
+        "n|tbl|public.verification",
+        "n|sch|public",
+        "n|col|public.verification.identifier"
+      ],
+      "sharedWrites": [
+        "e|uniqueness|public.verification.identifier"
+      ],
+      "sqlHash": "6910e2dbeb2813f7"
+    }
+  ],
+  "deltas": [
+    {
+      "op": "alter",
+      "key": "indexes\u0000[\"public\",\"verification_identifier_idx\"]",
+      "set": {
+        "isUnique": false
+      }
+    }
+  ]
+}

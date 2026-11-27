@@ -1,0 +1,59 @@
+{
+  "type": "diff",
+  "version": "10",
+  "dialect": "postgres",
+  "id": "ae461242-af24-41bc-bc3f-19af60c7576a",
+  "prevIds": [
+    "7d978a14-89fd-40c5-be79-3af08a7e5c3f"
+  ],
+  "footprints": [
+    {
+      "statementType": "drop_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "users"
+      ],
+      "writes": [
+        "s|tbl|public.users",
+        "n|tbl|public.users",
+        "e|tbl|public.users",
+        "n|rel|public.users",
+        "n|type|public.users"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "drop",
+      "key": "tables\u0000[\"public\",\"users\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"users\",\"id\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"users\",\"name\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"users\",\"age\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"users\",\"email\"]"
+    },
+    {
+      "op": "drop",
+      "key": "pks\u0000[\"public\",\"users\",\"users_pkey\"]"
+    },
+    {
+      "op": "drop",
+      "key": "uniques\u0000[\"public\",\"users\",\"users_email_key\"]"
+    }
+  ]
+}

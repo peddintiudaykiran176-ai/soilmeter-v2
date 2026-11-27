@@ -1,4 +1,12 @@
 import Image from "next/image";
+import {
+  FiArrowRight,
+  FiCheck,
+  FiDroplet,
+  FiFeather,
+  FiLayout,
+  FiTrendingUp,
+} from "react-icons/fi";
 import { HomeAuthLink } from "@/components/auth/home-auth-link";
 
 const features = [
@@ -7,71 +15,21 @@ const features = [
     title: "Know your soil",
     description:
       "See soil moisture at a glance and understand what is happening beneath the surface.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path
-          d="M12 3.5s6 6.4 6 11a6 6 0 1 1-12 0c0-4.6 6-11 6-11Z"
-          stroke="currentColor"
-          strokeWidth="1.7"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M9.3 15.2a2.8 2.8 0 0 0 2.8 2.8"
-          stroke="currentColor"
-          strokeWidth="1.7"
-          strokeLinecap="round"
-        />
-      </svg>
-    ),
+    icon: <FiDroplet className="size-6" aria-hidden="true" />,
   },
   {
     number: "02",
     title: "Spot changes early",
     description:
       "Follow readings over time so you can notice shifts and respond with confidence.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path
-          d="M4 18.5V5.5m0 13h16M7 15l4-4 3 2 5-6"
-          stroke="currentColor"
-          strokeWidth="1.7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M15.5 7H19v3.5"
-          stroke="currentColor"
-          strokeWidth="1.7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
+    icon: <FiTrendingUp className="size-6" aria-hidden="true" />,
   },
   {
     number: "03",
     title: "Check in anywhere",
     description:
       "A clear, simple dashboard brings your sensor readings together in one place.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect
-          x="4"
-          y="5"
-          width="16"
-          height="14"
-          rx="2.5"
-          stroke="currentColor"
-          strokeWidth="1.7"
-        />
-        <path
-          d="M8 9h8M8 12h5m-5 3h8"
-          stroke="currentColor"
-          strokeWidth="1.7"
-          strokeLinecap="round"
-        />
-      </svg>
-    ),
+    icon: <FiLayout className="size-6" aria-hidden="true" />,
   },
 ];
 
@@ -87,15 +45,7 @@ export default function Home() {
       <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5 sm:px-10 lg:px-12">
         <a href="#" className="flex items-center gap-2.5" aria-label="Soilmeter home">
           <span className="flex size-9 items-center justify-center rounded-xl bg-[#1f513b] text-white">
-            <svg viewBox="0 0 24 24" fill="none" className="size-5" aria-hidden="true">
-              <path
-                d="M12 20v-8m0 3c-4.5 0-7-2.5-7-7 4.5 0 7 2.5 7 7Zm0-3c0-4.5 2.5-7 7-7 0 4.5-2.5 7-7 7Z"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <FiFeather className="size-5" aria-hidden="true" />
           </span>
           <span className="text-lg font-semibold tracking-tight">soilmeter</span>
         </a>
@@ -134,24 +84,16 @@ export default function Home() {
               className="inline-flex items-center gap-2 rounded-full bg-[#1f513b] px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#163e2d]"
             >
               See how it works
-              <svg viewBox="0 0 20 20" fill="none" className="size-4" aria-hidden="true">
-                <path
-                  d="M4 10h12m-5-5 5 5-5 5"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <FiArrowRight className="size-4" aria-hidden="true" />
             </a>
             <span className="text-sm text-[#738176]">Simple readings. Smarter care.</span>
           </div>
           <div className="mt-12 flex flex-wrap gap-x-8 gap-y-3 border-t border-[#e1e8dc] pt-6 text-sm text-[#52675a]">
             <span className="flex items-center gap-2">
-              <span className="text-[#65935c]">✓</span> Clear soil insights
+              <FiCheck className="size-4 text-[#65935c]" aria-hidden="true" /> Clear soil insights
             </span>
             <span className="flex items-center gap-2">
-              <span className="text-[#65935c]">✓</span> Made for everyday growing
+              <FiCheck className="size-4 text-[#65935c]" aria-hidden="true" /> Made for everyday growing
             </span>
           </div>
         </div>
@@ -237,7 +179,7 @@ export default function Home() {
               className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[#28583c] hover:text-[#163e2d]"
             >
               Discover the features
-              <span aria-hidden="true">→</span>
+              <FiArrowRight className="size-4" aria-hidden="true" />
             </a>
           </div>
 
@@ -302,15 +244,7 @@ export default function Home() {
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-9 sm:px-10 md:flex-row md:items-center md:justify-between lg:px-12">
           <a href="#" className="flex items-center gap-2.5" aria-label="Soilmeter home">
             <span className="flex size-9 items-center justify-center rounded-xl bg-white/10 text-white">
-              <svg viewBox="0 0 24 24" fill="none" className="size-5" aria-hidden="true">
-                <path
-                  d="M12 20v-8m0 3c-4.5 0-7-2.5-7-7 4.5 0 7 2.5 7 7Zm0-3c0-4.5 2.5-7 7-7 0 4.5-2.5 7-7 7Z"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <FiFeather className="size-5" aria-hidden="true" />
             </span>
             <span className="text-lg font-semibold tracking-tight">soilmeter</span>
           </a>

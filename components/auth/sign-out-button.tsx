@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { FiLogOut } from "react-icons/fi";
 import { authClient } from "@/lib/auth-client";
 
 export function SignOutButton() {
@@ -33,8 +34,9 @@ export function SignOutButton() {
         type="button"
         onClick={signOut}
         disabled={pending}
-        className="rounded-full border border-[#d8e6d9] bg-white px-4 py-2 text-sm font-semibold text-[#14532d] transition hover:bg-[#f0fdf4] disabled:opacity-60"
+        className="dashboard-signout-button flex items-center gap-2 rounded-full border border-[#d8e6d9] bg-white px-4 py-2 text-sm font-semibold text-[#14532d] transition hover:bg-[#f0fdf4] disabled:opacity-60"
       >
+        <FiLogOut aria-hidden="true" />
         {pending ? "Signing out…" : "Sign out"}
       </button>
       {error && (

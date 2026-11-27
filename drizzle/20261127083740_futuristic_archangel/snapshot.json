@@ -1,0 +1,198 @@
+{
+  "type": "diff",
+  "version": "10",
+  "dialect": "postgres",
+  "id": "6580578c-595a-46bc-9c7d-7e1ce3f6b156",
+  "prevIds": [
+    "c7be1e27-96cd-442b-958e-c4c28c0a6637"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "dashboard_devices"
+      ],
+      "writes": [
+        "s|tbl|public.dashboard_devices",
+        "n|tbl|public.dashboard_devices",
+        "e|tbl|public.dashboard_devices",
+        "n|rel|public.dashboard_devices",
+        "n|type|public.dashboard_devices"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "dashboard_devices",
+        "dashboard_devices_user_device_unique"
+      ],
+      "writes": [
+        "s|idx|public.dashboard_devices_user_device_unique",
+        "n|idx|public.dashboard_devices_user_device_unique",
+        "e|idx|public.dashboard_devices_user_device_unique",
+        "n|rel|public.dashboard_devices_user_device_unique"
+      ],
+      "reads": [
+        "n|tbl|public.dashboard_devices",
+        "n|sch|public",
+        "n|col|public.dashboard_devices.user_id",
+        "n|col|public.dashboard_devices.device_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "dashboard_devices"
+      ],
+      "writes": [
+        "s|fk|public.dashboard_devices.dashboard_devices_user_id_user_id_fkey",
+        "n|fk|public.dashboard_devices.dashboard_devices_user_id_user_id_fkey",
+        "e|fk|public.dashboard_devices.dashboard_devices_user_id_user_id_fkey",
+        "n|con|public.dashboard_devices.dashboard_devices_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.dashboard_devices",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.dashboard_devices.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "dashboard_devices",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "dashboard_devices",
+        "name": "user_id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "dashboard_devices",
+        "name": "device_id",
+        "type": "varchar(50)",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "dashboard_devices",
+        "name": "field_name",
+        "type": "varchar(100)",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "dashboard_devices",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "dashboard_devices",
+        "name": "dashboard_devices_user_device_unique",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "user_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "device_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "dashboard_devices",
+        "name": "dashboard_devices_user_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    }
+  ]
+}

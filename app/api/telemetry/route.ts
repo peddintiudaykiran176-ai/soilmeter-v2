@@ -4,20 +4,23 @@ import {
   desc,
   eq,
   gte,
+  inArray,
+  isNull,
   lte,
   lt,
+  or,
   type SQL,
 } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/index";
-import { soilTelemetry } from "@/db/schema";
+import { devices, soilTelemetry } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 const PRIVATE_NO_STORE_HEADERS = {
   "Cache-Control": "private, no-store",
 };
 const MAX_PAGE_NUMBER = 10_000;
-const MAX_DEVICE_ID_LENGTH = 50;
+const MAX_DEVICE_ID_LENGTH = 128;
 const MAX_MESSAGE_LENGTH = 2_000;
 const MAX_PAGE_SIZE = 500;
 
@@ -89,37 +92,99 @@ async function getSession(request: Request) {
   return auth.api.getSession({ headers: request.headers });
 }
 
+function getTelemetryAccessCondition(userId: string): SQL {
+  const registeredDeviceIds = db
+    .select({ deviceId: devices.deviceId })
+    .from(devices)
+    .where(eq(devices.userId, userId));
+  const condition = or(
+    eq(soilTelemetry.userId, userId),
+    and(
+      isNull(soilTelemetry.userId),
+      inArray(soilTelemetry.deviceId, registeredDeviceIds),
+    ),
+  );
+  if (!condition) {
+    throw new Error("Unable to establish telemetry access for this user.");
+  }
+  return condition;
+}
+
 export async function GET(request: Request) {
   try {
     const session = await getSession(request);
     if (!session) {
       return jsonResponse({ error: "Authentication required" }, 401);
     }
+    const telemetryAccess = getTelemetryAccessCondition(session.user.id);
 
     const { searchParams } = new URL(request.url);
     if (searchParams.get("devices") === "1") {
-      const devices = await db
-        .selectDistinctOn([soilTelemetry.deviceId], {
-          deviceId: soilTelemetry.deviceId,
-          fieldName: soilTelemetry.fieldName,
-          latitude: soilTelemetry.latitude,
-          longitude: soilTelemetry.longitude,
-          moisture: soilTelemetry.moisture,
-          message: soilTelemetry.message,
-          createdAt: soilTelemetry.createdAt,
-        })
-        .from(soilTelemetry)
-        .where(eq(soilTelemetry.userId, session.user.id))
-        .orderBy(
-          soilTelemetry.deviceId,
-          desc(soilTelemetry.createdAt),
-          desc(soilTelemetry.id),
-        );
+      const [telemetryDevices, registeredDevices] = await Promise.all([
+        db
+          .selectDistinctOn([soilTelemetry.deviceId], {
+            deviceId: soilTelemetry.deviceId,
+            fieldName: soilTelemetry.fieldName,
+            latitude: soilTelemetry.latitude,
+            longitude: soilTelemetry.longitude,
+            moisture: soilTelemetry.moisture,
+            message: soilTelemetry.message,
+            createdAt: soilTelemetry.createdAt,
+          })
+          .from(soilTelemetry)
+          .where(telemetryAccess)
+          .orderBy(
+            soilTelemetry.deviceId,
+            desc(soilTelemetry.createdAt),
+            desc(soilTelemetry.id),
+          ),
+        db
+          .select({
+            deviceId: devices.deviceId,
+            fieldName: devices.fieldName,
+            cropType: devices.cropType,
+            latitude: devices.latitude,
+            longitude: devices.longitude,
+            status: devices.status,
+          })
+          .from(devices)
+          .where(eq(devices.userId, session.user.id)),
+      ]);
+      const registeredById = new Map(
+        registeredDevices.map((device) => [device.deviceId, device]),
+      );
+      const telemetryDeviceIds = new Set(
+        telemetryDevices.map((device) => device.deviceId),
+      );
       return jsonResponse({
-        devices: devices.map((device) => ({
-          ...device,
-          createdAt: device.createdAt?.toISOString() ?? null,
-        })),
+        devices: [
+          ...telemetryDevices.map((device) => ({
+            ...device,
+            fieldName:
+              registeredById.get(device.deviceId)?.fieldName ??
+              device.fieldName ??
+              null,
+            cropType: registeredById.get(device.deviceId)?.cropType ?? null,
+            latitude:
+              device.latitude ??
+              registeredById.get(device.deviceId)?.latitude ??
+              null,
+            longitude:
+              device.longitude ??
+              registeredById.get(device.deviceId)?.longitude ??
+              null,
+            status: registeredById.get(device.deviceId)?.status ?? null,
+            createdAt: device.createdAt?.toISOString() ?? null,
+          })),
+          ...registeredDevices
+            .filter((device) => !telemetryDeviceIds.has(device.deviceId))
+            .map((device) => ({
+              ...device,
+              moisture: null,
+              message: "",
+              createdAt: null,
+            })),
+        ],
       });
     }
 
@@ -157,13 +222,13 @@ export async function GET(request: Request) {
       return jsonResponse(
         {
           error:
-            `Invalid filters. Use a device_id of 1–50 characters, valid UTC instants or YYYY-MM-DD dates in order, page 1–10000, and page_size 1–${MAX_PAGE_SIZE}.`,
+            `Invalid filters. Use a device_id of 1–${MAX_DEVICE_ID_LENGTH} characters, valid UTC instants or YYYY-MM-DD dates in order, page 1–10000, and page_size 1–${MAX_PAGE_SIZE}.`,
         },
         400,
       );
     }
 
-    const conditions: SQL[] = [eq(soilTelemetry.userId, session.user.id)];
+    const conditions: SQL[] = [telemetryAccess];
     if (deviceId) conditions.push(eq(soilTelemetry.deviceId, deviceId));
     if (startAt) {
       conditions.push(gte(soilTelemetry.createdAt, startAt));

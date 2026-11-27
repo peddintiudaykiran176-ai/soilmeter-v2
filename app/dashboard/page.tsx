@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import "./dashboard.css";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
 import { db } from "@/index";

@@ -1,0 +1,485 @@
+{
+  "type": "diff",
+  "version": "10",
+  "dialect": "postgres",
+  "id": "36aec5b5-b0f7-4bb7-a5b2-d345de734511",
+  "prevIds": [
+    "6580578c-595a-46bc-9c7d-7e1ce3f6b156"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "devices"
+      ],
+      "writes": [
+        "s|tbl|public.devices",
+        "n|tbl|public.devices",
+        "e|tbl|public.devices",
+        "n|rel|public.devices",
+        "n|type|public.devices",
+        "n|rel|public.devices_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "drop_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "dashboard_devices"
+      ],
+      "writes": [
+        "s|tbl|public.dashboard_devices",
+        "n|tbl|public.dashboard_devices",
+        "e|tbl|public.dashboard_devices",
+        "n|rel|public.dashboard_devices",
+        "n|type|public.dashboard_devices"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "soil_telemetry",
+        "device_id"
+      ],
+      "writes": [
+        "s|colprop|public.soil_telemetry.device_id.type",
+        "s|colprop|public.soil_telemetry.device_id.default"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public",
+        "n|col|public.soil_telemetry.device_id"
+      ],
+      "sqlHash": "5cc6a10d6b551b86"
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "devices",
+        "devices_device_id_unique"
+      ],
+      "writes": [
+        "s|idx|public.devices_device_id_unique",
+        "n|idx|public.devices_device_id_unique",
+        "e|idx|public.devices_device_id_unique",
+        "n|rel|public.devices_device_id_unique"
+      ],
+      "reads": [
+        "n|tbl|public.devices",
+        "n|sch|public",
+        "n|col|public.devices.device_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "devices",
+        "devices_user_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.devices_user_id_idx",
+        "n|idx|public.devices_user_id_idx",
+        "e|idx|public.devices_user_id_idx",
+        "n|rel|public.devices_user_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.devices",
+        "n|sch|public",
+        "n|col|public.devices.user_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "devices"
+      ],
+      "writes": [
+        "s|fk|public.devices.devices_user_id_user_id_fkey",
+        "n|fk|public.devices.devices_user_id_user_id_fkey",
+        "e|fk|public.devices.devices_user_id_user_id_fkey",
+        "n|con|public.devices.devices_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.devices",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.devices.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "devices",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "user_id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "device_id",
+        "type": "varchar(128)",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "field_name",
+        "type": "varchar(120)",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "crop_type",
+        "type": "varchar(80)",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "latitude",
+        "type": "double precision",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "longitude",
+        "type": "double precision",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "status",
+        "type": "varchar(20)",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'pending'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "devices_device_id_unique",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "device_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "devices_user_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "user_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "devices_user_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "devices_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "devices_device_id_length",
+        "value": "char_length(btrim(\"device_id\")) BETWEEN 2 AND 128",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "devices_field_name_length",
+        "value": "char_length(btrim(\"field_name\")) BETWEEN 2 AND 120",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "devices_crop_type_length",
+        "value": "char_length(btrim(\"crop_type\")) BETWEEN 1 AND 80",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "devices_coordinates_pair",
+        "value": "(\"latitude\" IS NULL AND \"longitude\" IS NULL) OR (\"latitude\" IS NOT NULL AND \"longitude\" IS NOT NULL)",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "devices_latitude_bounds",
+        "value": "\"latitude\" IS NULL OR \"latitude\" BETWEEN -90 AND 90",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "devices_longitude_bounds",
+        "value": "\"longitude\" IS NULL OR \"longitude\" BETWEEN -180 AND 180",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "devices",
+        "name": "devices_status_valid",
+        "value": "\"status\" IN ('pending', 'verified', 'inactive')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "drop",
+      "key": "tables\u0000[\"public\",\"dashboard_devices\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"dashboard_devices\",\"user_id\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"dashboard_devices\",\"device_id\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"dashboard_devices\",\"field_name\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"dashboard_devices\",\"created_at\"]"
+    },
+    {
+      "op": "drop",
+      "key": "indexes\u0000[\"public\",\"dashboard_devices_user_device_unique\"]"
+    },
+    {
+      "op": "drop",
+      "key": "fks\u0000[\"public\",\"dashboard_devices\",\"dashboard_devices_user_id_user_id_fkey\"]"
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"soil_telemetry\",\"device_id\"]",
+      "set": {
+        "type": "varchar(128)"
+      }
+    }
+  ]
+}

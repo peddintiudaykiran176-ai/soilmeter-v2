@@ -10,6 +10,7 @@ import {
   text,
   timestamp,
   uniqueIndex,
+  uuid,
   varchar,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
@@ -103,7 +104,7 @@ export const rateLimit = pgTable("rateLimit", {
 export const soilTelemetry = pgTable("soil_telemetry", {
   id: bigserial("id", { mode: "bigint" }).primaryKey(),
   userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
-  deviceId: varchar("device_id", { length: 50 }).notNull(),
+  deviceId: varchar("device_id", { length: 128 }).notNull(),
   message: text("message").notNull(),
   moisture: doublePrecision("moisture"),
   latitude: doublePrecision("latitude"),
@@ -129,6 +130,60 @@ export const soilTelemetry = pgTable("soil_telemetry", {
     sql`(${table.latitude} IS NULL AND ${table.longitude} IS NULL) OR (${table.latitude} IS NOT NULL AND ${table.longitude} IS NOT NULL)`,
   ),
 ]);
+
+export const devices = pgTable(
+  "devices",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    deviceId: varchar("device_id", { length: 128 }).notNull(),
+    fieldName: varchar("field_name", { length: 120 }).notNull(),
+    cropType: varchar("crop_type", { length: 80 }).notNull(),
+    latitude: doublePrecision("latitude"),
+    longitude: doublePrecision("longitude"),
+    status: varchar("status", { length: 20 }).notNull().default("pending"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check(
+      "devices_device_id_length",
+      sql`char_length(btrim(${table.deviceId})) BETWEEN 2 AND 128`,
+    ),
+    check(
+      "devices_field_name_length",
+      sql`char_length(btrim(${table.fieldName})) BETWEEN 2 AND 120`,
+    ),
+    check(
+      "devices_crop_type_length",
+      sql`char_length(btrim(${table.cropType})) BETWEEN 1 AND 80`,
+    ),
+    check(
+      "devices_coordinates_pair",
+      sql`(${table.latitude} IS NULL AND ${table.longitude} IS NULL) OR (${table.latitude} IS NOT NULL AND ${table.longitude} IS NOT NULL)`,
+    ),
+    check(
+      "devices_latitude_bounds",
+      sql`${table.latitude} IS NULL OR ${table.latitude} BETWEEN -90 AND 90`,
+    ),
+    check(
+      "devices_longitude_bounds",
+      sql`${table.longitude} IS NULL OR ${table.longitude} BETWEEN -180 AND 180`,
+    ),
+    check(
+      "devices_status_valid",
+      sql`${table.status} IN ('pending', 'verified', 'inactive')`,
+    ),
+    uniqueIndex("devices_device_id_unique").on(table.deviceId),
+    index("devices_user_id_idx").on(table.userId),
+  ],
+);
 
 export const dashboardPreferences = pgTable(
   "dashboard_preferences",
@@ -158,5 +213,6 @@ export const schema = {
   verification,
   rateLimit,
   soilTelemetry,
+  devices,
   dashboardPreferences,
 };

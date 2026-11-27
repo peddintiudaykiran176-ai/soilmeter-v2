@@ -2,190 +2,33 @@
 
 import dynamic from "next/dynamic";
 import {
-  CartesianGrid,
-  ResponsiveContainer,
-  Scatter,
-  ScatterChart,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
+  type FormEvent,
   type ReactNode,
 } from "react";
-import Link from "next/link";
-import { fromLocalDateTime, toLocalDateTime } from "@/lib/dashboard-time";
+import { FiPlus } from "react-icons/fi";
+import { Card } from "@/components/ui/card";
+import { DashboardHeader } from "./dashboard-header";
+import { DashboardTelemetryChart } from "./dashboard-telemetry-chart";
+import { DeviceRegistrationDialog } from "./device-registration-dialog";
+import { MoistureGauge } from "./moisture-gauge";
+import type { ChartPoint, Device, Telemetry, Theme } from "./dashboard-types";
+import {
+  formatTimestamp,
+  isTheme,
+  localDefaultRange,
+  TIMEZONES,
+  validateTelemetryResponse,
+} from "./dashboard-utils";
 
 const LocationMap = dynamic(
   () => import("./location-map").then((module) => module.LocationMap),
   { ssr: false, loading: () => <div className="map-loading">Loading Google Maps…</div> },
 );
-
-const TIMEZONES = [
-  "Asia/Kolkata",
-  "Asia/Colombo",
-  "UTC",
-  "Asia/Dubai",
-  "Europe/London",
-  "America/New_York",
-] as const;
-const QUICK_RANGES = [
-  { label: "1 hour", milliseconds: 60 * 60 * 1000 },
-  { label: "6 hours", milliseconds: 6 * 60 * 60 * 1000 },
-  { label: "12 hours", milliseconds: 12 * 60 * 60 * 1000 },
-  { label: "24 hours", milliseconds: 24 * 60 * 60 * 1000 },
-  { label: "7 days", milliseconds: 7 * 24 * 60 * 60 * 1000 },
-  { label: "30 days", milliseconds: 30 * 24 * 60 * 60 * 1000 },
-] as const;
-
-type Theme = "light" | "dark" | "system";
-type Telemetry = {
-  id: string;
-  deviceId: string;
-  message: string;
-  moisture: number | null;
-  latitude: number | null;
-  longitude: number | null;
-  fieldName: string | null;
-  createdAt: string | null;
-};
-type Device = {
-  deviceId: string;
-  fieldName: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  moisture: number | null;
-  message: string;
-  createdAt: string | null;
-};
-type Range = { start: string; end: string };
-type ChartPoint = Telemetry & { timestamp: number };
-
-function isTheme(value: string): value is Theme {
-  return value === "light" || value === "dark" || value === "system";
-}
-
-function formatTimestamp(value: string | null, timezone: string): string {
-  if (!value) return "No reading timestamp";
-  return new Intl.DateTimeFormat(undefined, {
-    timeZone: timezone,
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    fractionalSecondDigits: 3,
-    timeZoneName: "short",
-  }).format(new Date(value));
-}
-
-function localDefaultRange(duration: number): Range {
-  const end = new Date();
-  return {
-    start: new Date(end.getTime() - duration).toISOString(),
-    end: end.toISOString(),
-  };
-}
-
-function validateTelemetryResponse(value: unknown): value is {
-  data: Telemetry[];
-  pagination: { total: number; totalPages: number };
-} {
-  if (!value || typeof value !== "object") return false;
-  const payload = value as { data?: unknown; pagination?: unknown };
-  if (!Array.isArray(payload.data) || !payload.pagination || typeof payload.pagination !== "object") {
-    return false;
-  }
-  const pagination = payload.pagination as {
-    total?: unknown;
-    totalPages?: unknown;
-  };
-  return (
-    Number.isSafeInteger(pagination.total) &&
-    Number.isSafeInteger(pagination.totalPages) &&
-    payload.data.every(
-    (row) =>
-      row &&
-      typeof row === "object" &&
-      typeof row.id === "string" &&
-      typeof row.deviceId === "string" &&
-      (typeof row.createdAt === "string" || row.createdAt === null) &&
-      (typeof row.moisture === "number" || row.moisture === null) &&
-      (typeof row.latitude === "number" || row.latitude === null) &&
-      (typeof row.longitude === "number" || row.longitude === null) &&
-      (typeof row.fieldName === "string" || row.fieldName === null),
-    )
-  );
-}
-
-function formatAxisTime(timestamp: number, timezone: string): string {
-  return new Intl.DateTimeFormat(undefined, {
-    timeZone: timezone,
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(timestamp);
-}
-
-function ChartTooltip({
-  active,
-  payload,
-  timezone,
-}: {
-  active?: boolean;
-  payload?: Array<{ payload?: ChartPoint }>;
-  timezone: string;
-}) {
-  const point = payload?.[0]?.payload;
-  if (!active || !point) return null;
-  return (
-    <div className="chart-tooltip">
-      <strong>{formatTimestamp(point.createdAt, timezone)}</strong>
-      <span>{point.moisture ?? "—"}% moisture</span>
-      <span>Reading #{point.id}</span>
-    </div>
-  );
-}
-
-function DateTimeInputs({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  const [date = "", time = ""] = value.split("T");
-  return (
-    <fieldset className="range-field">
-      <legend>{label}</legend>
-      <label>
-        <span>Date</span>
-        <input
-          type="date"
-          value={date}
-          onChange={(event) => onChange(`${event.target.value}T${time || "00:00"}`)}
-        />
-      </label>
-      <label>
-        <span>Time</span>
-        <input
-          type="time"
-          value={time}
-          onChange={(event) => onChange(`${date}T${event.target.value}`)}
-        />
-      </label>
-    </fieldset>
-  );
-}
 
 export function DashboardClient({
   user,
@@ -205,17 +48,24 @@ export function DashboardClient({
   const [preferenceError, setPreferenceError] = useState("");
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
+  const [deviceFormOpen, setDeviceFormOpen] = useState(false);
+  const [deviceFormPending, setDeviceFormPending] = useState(false);
+  const [deviceFormError, setDeviceFormError] = useState("");
+  const [locationStatus, setLocationStatus] = useState("");
+  const [newDeviceId, setNewDeviceId] = useState("");
+  const [newFieldName, setNewFieldName] = useState("");
+  const [newCropType, setNewCropType] = useState("");
+  const [newLatitude, setNewLatitude] = useState("");
+  const [newLongitude, setNewLongitude] = useState("");
   const [readings, setReadings] = useState<Telemetry[]>([]);
   const [totalReadings, setTotalReadings] = useState(0);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState("");
-  const [automatic, setAutomatic] = useState(true);
-  const [selectedRange, setSelectedRange] = useState<Range>(() =>
-    localDefaultRange(24 * 60 * 60 * 1000),
-  );
-  const [draftStart, setDraftStart] = useState("");
-  const [draftEnd, setDraftEnd] = useState("");
   const themeRef = useRef(theme);
+  const initialDevicePromptHandledRef = useRef(false);
+  const locationRequestStartedRef = useRef(false);
+  const locationRequestIdRef = useRef(0);
+  const deviceCoordinatesRef = useRef({ latitude: "", longitude: "" });
 
   const persistPreferences = useCallback(
     async (nextTimezone: string, nextTheme: Theme) => {
@@ -237,6 +87,71 @@ export function DashboardClient({
   useEffect(() => {
     themeRef.current = theme;
   }, [theme]);
+
+  const requestDeviceLocation = useCallback(() => {
+    if (locationRequestStartedRef.current) return;
+    locationRequestStartedRef.current = true;
+
+    const { latitude, longitude } = deviceCoordinatesRef.current;
+    if (latitude.trim() || longitude.trim()) {
+      setLocationStatus("Using the coordinates already entered.");
+      return;
+    }
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setLocationStatus("Location detection is unavailable. Enter coordinates or leave both blank.");
+      return;
+    }
+
+    const requestId = ++locationRequestIdRef.current;
+    setLocationStatus("Detecting your location…");
+    try {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          if (requestId !== locationRequestIdRef.current) return;
+          const nextLatitude = coords.latitude.toFixed(6);
+          const nextLongitude = coords.longitude.toFixed(6);
+          deviceCoordinatesRef.current = {
+            latitude: nextLatitude,
+            longitude: nextLongitude,
+          };
+          setNewLatitude(nextLatitude);
+          setNewLongitude(nextLongitude);
+          setLocationStatus("Location detected.");
+        },
+        () => {
+          if (requestId === locationRequestIdRef.current) {
+            setLocationStatus("Location could not be detected. Enter coordinates or leave both blank.");
+          }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+      );
+    } catch {
+      setLocationStatus("Location could not be detected. Enter coordinates or leave both blank.");
+    }
+  }, []);
+
+  function closeDeviceForm() {
+    if (deviceFormPending) return;
+    locationRequestIdRef.current += 1;
+    locationRequestStartedRef.current = false;
+    setDeviceFormOpen(false);
+  }
+
+  function openDeviceForm() {
+    setDeviceFormError("");
+    setDeviceFormOpen(true);
+    requestDeviceLocation();
+  }
+
+  function detectDeviceLocation() {
+    locationRequestIdRef.current += 1;
+    locationRequestStartedRef.current = false;
+    deviceCoordinatesRef.current = { latitude: "", longitude: "" };
+    setNewLatitude("");
+    setNewLongitude("");
+    setDeviceFormError("");
+    requestDeviceLocation();
+  }
 
   useEffect(() => {
     if (!initialPreferences.timezone) {
@@ -285,6 +200,13 @@ export function DashboardClient({
         }
         const nextDevices = (devicesPayload as { devices: Device[] }).devices;
         setDevices(nextDevices);
+        if (!initialDevicePromptHandledRef.current) {
+          initialDevicePromptHandledRef.current = true;
+          if (nextDevices.length === 0) {
+            setDeviceFormOpen(true);
+            requestDeviceLocation();
+          }
+        }
 
         const resolvedDeviceId = nextDevices.some((device) => device.deviceId === selectedDeviceId)
           ? selectedDeviceId
@@ -299,9 +221,7 @@ export function DashboardClient({
           return;
         }
 
-        const range = automatic
-          ? localDefaultRange(24 * 60 * 60 * 1000)
-          : selectedRange;
+        const range = localDefaultRange(24 * 60 * 60 * 1000);
         const params = new URLSearchParams({
           device_id: resolvedDeviceId,
           start_at: range.start,
@@ -356,7 +276,7 @@ export function DashboardClient({
         if (!signal?.aborted) setLoading(false);
       }
     },
-    [automatic, selectedDeviceId, selectedRange],
+    [requestDeviceLocation, selectedDeviceId],
   );
 
   useEffect(() => {
@@ -365,21 +285,11 @@ export function DashboardClient({
       () => void refresh(controller.signal),
       0,
     );
-    if (automatic) {
-      const interval = window.setInterval(() => {
-        void refresh();
-      }, 20_000);
-      return () => {
-        window.clearTimeout(initialRefresh);
-        controller.abort();
-        window.clearInterval(interval);
-      };
-    }
     return () => {
       window.clearTimeout(initialRefresh);
       controller.abort();
     };
-  }, [automatic, refresh]);
+  }, [refresh]);
 
   const selectedDevice =
     devices.find((device) => device.deviceId === selectedDeviceId) ?? null;
@@ -398,12 +308,6 @@ export function DashboardClient({
   const maximum = moistureValues.length ? Math.max(...moistureValues) : null;
 
   function changeTimezone(value: string) {
-    if (!automatic) {
-      const start = fromLocalDateTime(draftStart, timezone);
-      const end = fromLocalDateTime(draftEnd, timezone);
-      if (start) setDraftStart(toLocalDateTime(new Date(start), value));
-      if (end) setDraftEnd(toLocalDateTime(new Date(end), value));
-    }
     setTimezone(value);
     void persistPreferences(value, theme);
   }
@@ -414,251 +318,138 @@ export function DashboardClient({
     void persistPreferences(timezone, value);
   }
 
-  function startManualMode() {
-    const range = localDefaultRange(60 * 60 * 1000);
-    setSelectedRange(range);
-    setDraftStart(toLocalDateTime(new Date(range.start), timezone));
-    setDraftEnd(toLocalDateTime(new Date(range.end), timezone));
-    setAutomatic(false);
-  }
-
-  function setQuickRange(milliseconds: number) {
-    const range = localDefaultRange(milliseconds);
-    setSelectedRange(range);
-    setDraftStart(toLocalDateTime(new Date(range.start), timezone));
-    setDraftEnd(toLocalDateTime(new Date(range.end), timezone));
-    setAutomatic(false);
-  }
-
-  function applyManualRange() {
-    const start = fromLocalDateTime(draftStart, timezone);
-    const end = fromLocalDateTime(draftEnd, timezone);
-    if (!start || !end || start > end) {
-      setApiError("Choose a valid date and time range in the selected timezone.");
+  async function addDevice(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setDeviceFormError("");
+    if (!newLatitude.trim() || !newLongitude.trim()) {
+      setDeviceFormError("Latitude and longitude are required.");
       return;
     }
-    setApiError("");
-    setSelectedRange({ start, end });
-  }
+    setDeviceFormPending(true);
+    try {
+      const response = await fetch("/api/dashboard/devices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          deviceId: newDeviceId.trim(),
+          fieldName: newFieldName.trim(),
+          cropType: newCropType.trim(),
+          latitude: newLatitude.trim() ? Number(newLatitude) : null,
+          longitude: newLongitude.trim() ? Number(newLongitude) : null,
+        }),
+      });
+      const payload: unknown = await response.json();
+      if (!response.ok) {
+        const errorMessage =
+          payload &&
+          typeof payload === "object" &&
+          "error" in payload &&
+          typeof payload.error === "string"
+            ? payload.error
+            : "Unable to add this device.";
+        throw new Error(errorMessage);
+      }
+      if (
+        !payload ||
+        typeof payload !== "object" ||
+        !("device" in payload) ||
+        !payload.device ||
+        typeof payload.device !== "object" ||
+        !("deviceId" in payload.device) ||
+        typeof payload.device.deviceId !== "string" ||
+        !("fieldName" in payload.device) ||
+        typeof payload.device.fieldName !== "string" ||
+        !("cropType" in payload.device) ||
+        typeof payload.device.cropType !== "string" ||
+        !("latitude" in payload.device) ||
+        (typeof payload.device.latitude !== "number" &&
+          payload.device.latitude !== null) ||
+        !("longitude" in payload.device) ||
+        (typeof payload.device.longitude !== "number" &&
+          payload.device.longitude !== null) ||
+        !("status" in payload.device) ||
+        typeof payload.device.status !== "string"
+      ) {
+        throw new Error("The device registration returned an unexpected response.");
+      }
 
-  function resetRange() {
-    setAutomatic(true);
-    setApiError("");
+      const registeredDevice: Device = {
+        deviceId: payload.device.deviceId,
+        fieldName: payload.device.fieldName,
+        cropType: payload.device.cropType,
+        latitude: payload.device.latitude,
+        longitude: payload.device.longitude,
+        moisture: null,
+        message: "",
+        createdAt: null,
+        status: payload.device.status,
+      };
+      setDevices((current) => [
+        registeredDevice,
+        ...current.filter(
+          (device) => device.deviceId !== registeredDevice.deviceId,
+        ),
+      ]);
+      setSelectedDeviceId(registeredDevice.deviceId);
+      setNewDeviceId("");
+      setNewFieldName("");
+      setNewCropType("");
+      setNewLatitude("");
+      setNewLongitude("");
+      deviceCoordinatesRef.current = { latitude: "", longitude: "" };
+      setLocationStatus("");
+      locationRequestIdRef.current += 1;
+      locationRequestStartedRef.current = false;
+      setDeviceFormOpen(false);
+    } catch (error) {
+      setDeviceFormError(
+        error instanceof Error ? error.message : "Unable to add this device.",
+      );
+    } finally {
+      setDeviceFormPending(false);
+    }
   }
-
-  const chartColor = "var(--dash-accent)";
 
   return (
     <main className="dashboard-shell" data-theme={theme}>
       <div className="dashboard-container">
-        <header className="dashboard-header">
-          <Link href="/" className="dashboard-brand">
-            SoilMeter <span>M1</span>
-          </Link>
-          <div className="dashboard-header-right">
-            <div className="desktop-settings">
-              <label className="header-select-label">
-                Timezone
-                <select value={timezone} onChange={(event) => changeTimezone(event.target.value)}>
-                  {timezoneOptions.map((zone) => (
-                    <option key={zone} value={zone}>{zone}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="header-select-label">
-                Theme
-                <select value={theme} onChange={(event) => changeTheme(event.target.value)}>
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                  <option value="system">System</option>
-                </select>
-              </label>
-            </div>
-            <details className="mobile-settings">
-              <summary>Settings</summary>
-              <div className="mobile-settings-menu">
-                <label className="header-select-label">
-                  Timezone
-                  <select value={timezone} onChange={(event) => changeTimezone(event.target.value)}>
-                    {timezoneOptions.map((zone) => (
-                      <option key={zone} value={zone}>{zone}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="header-select-label">
-                  Theme
-                  <select value={theme} onChange={(event) => changeTheme(event.target.value)}>
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                    <option value="system">System</option>
-                  </select>
-                </label>
-              </div>
-            </details>
-            <div className="account-controls">
-              <span className="account-name">{user.name}</span>
-              {signOut}
-            </div>
-          </div>
-        </header>
+        <DashboardHeader
+          userName={user.name}
+          userEmail={user.email}
+          timezone={timezone}
+          theme={theme}
+          timezoneOptions={timezoneOptions}
+          adminLink={adminLink}
+          signOut={signOut}
+          onTimezoneChange={changeTimezone}
+          onThemeChange={changeTheme}
+        />
 
         {preferenceError && <p className="inline-error" role="alert">{preferenceError}</p>}
 
-        <section className="dashboard-welcome">
-          <div>
-            <p className="eyebrow">Your workspace</p>
-            <h1>Welcome, {user.name}</h1>
-            <p>{user.email} · {user.role.replace("_", " ")}</p>
-          </div>
-          {adminLink}
-        </section>
-
         <section className="dashboard-top-grid">
-          <article className="dashboard-card chart-card">
-            <div className="card-heading">
-              <div>
-                <p className="eyebrow">Soil moisture</p>
-                <h2>Reading history</h2>
-                <p className="muted-copy">Individual readings · {timezone}</p>
-              </div>
-              <label className="device-select-label">
-                Device
-                <select
-                  value={selectedDeviceId}
-                  onChange={(event) => {
-                    setSelectedDeviceId(event.target.value);
-                    setAutomatic(true);
-                  }}
-                  disabled={!devices.length}
-                >
-                  {!devices.length && <option value="">No devices</option>}
-                  {devices.map((device) => (
-                    <option key={device.deviceId} value={device.deviceId}>{device.deviceId}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <div className="time-controls">
-              <div className="mode-buttons" role="group" aria-label="Graph time mode">
-                <button type="button" className={automatic ? "is-selected" : ""} onClick={resetRange}>
-                  Automatic
-                </button>
-                <button type="button" className={!automatic ? "is-selected" : ""} onClick={startManualMode}>
-                  Manual range
-                </button>
-              </div>
-              {!automatic && (
-                <div className="manual-controls">
-                  <div className="quick-ranges">
-                    {QUICK_RANGES.map((range) => (
-                      <button key={range.label} type="button" onClick={() => setQuickRange(range.milliseconds)}>
-                        Last {range.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="range-inputs">
-                    <DateTimeInputs label="Start" value={draftStart} onChange={setDraftStart} />
-                    <DateTimeInputs label="End" value={draftEnd} onChange={setDraftEnd} />
-                    <div className="range-actions">
-                      <button type="button" className="primary-button" onClick={applyManualRange}>Apply</button>
-                      <button type="button" className="secondary-button" onClick={resetRange}>Reset</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {automatic && <p className="refresh-note">Showing the last 24 hours · refreshes every 20 seconds</p>}
-            </div>
-
-            {apiError && <p className="inline-error" role="alert">{apiError}</p>}
-            {loading ? (
-              <div className="chart-state" role="status">Loading telemetry…</div>
-            ) : devices.length === 0 ? (
-              <div className="chart-state">
-                <strong>No device readings yet</strong>
-                <span>Authenticated device uploads will appear here.</span>
-              </div>
-            ) : points.length === 0 ? (
-              <div className="chart-state">
-                <strong>No readings in this period</strong>
-                <span>Try a wider time range or check again after the next device upload.</span>
-              </div>
-            ) : (
-              <div className="chart-frame">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ScatterChart margin={{ top: 16, right: 16, bottom: 8, left: -12 }}>
-                    <CartesianGrid stroke="var(--dash-grid)" strokeDasharray="4 4" />
-                    <XAxis
-                      type="number"
-                      dataKey="timestamp"
-                      domain={["dataMin", "dataMax"]}
-                      tickFormatter={(value: number) => formatAxisTime(value, timezone)}
-                      tick={{ fill: "var(--dash-muted)", fontSize: 11 }}
-                      axisLine={{ stroke: "var(--dash-border)" }}
-                      tickLine={false}
-                      minTickGap={32}
-                    />
-                    <YAxis
-                      type="number"
-                      dataKey="moisture"
-                      domain={[0, 100]}
-                      tickFormatter={(value: number) => `${value}%`}
-                      tick={{ fill: "var(--dash-muted)", fontSize: 11 }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip
-                      content={<ChartTooltip timezone={timezone} />}
-                      cursor={{ stroke: "var(--dash-muted)", strokeDasharray: "4 4" }}
-                    />
-                    <Scatter
-                      name="Actual readings"
-                      data={points}
-                      fill={chartColor}
-                      shape="circle"
-                      isAnimationActive={false}
-                    />
-                  </ScatterChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
-            <div className="chart-summary">
-              <span><strong>{totalReadings}</strong> readings in period</span>
-              <span>Min <strong>{minimum === null ? "—" : `${minimum}%`}</strong></span>
-              <span>Max <strong>{maximum === null ? "—" : `${maximum}%`}</strong></span>
-              <span>Latest <strong>{latestReading?.moisture == null ? "—" : `${latestReading.moisture}%`}</strong></span>
-            </div>
-          </article>
+          <DashboardTelemetryChart
+            apiError={apiError}
+            deviceCount={devices.length}
+            loading={loading}
+            points={points}
+            totalReadings={totalReadings}
+            timezone={timezone}
+            minimum={minimum}
+            maximum={maximum}
+            latestReading={latestReading}
+            onRefresh={() => void refresh()}
+          />
 
           <div className="right-stack">
-            <article className="dashboard-card gauge-card">
-              <div>
-                <p className="eyebrow">Current moisture</p>
-                <h2>{selectedDevice?.deviceId ?? "No device selected"}</h2>
-              </div>
-              {selectedDevice?.moisture == null ? (
-                <div className="gauge-empty">No moisture reading available</div>
-              ) : (
-                <div
-                  className="moisture-gauge"
-                  style={{
-                    background: `conic-gradient(var(--dash-accent) 0 ${Math.max(0, Math.min(100, selectedDevice.moisture))}%, var(--dash-border) ${Math.max(0, Math.min(100, selectedDevice.moisture))}% 100%)`,
-                  }}
-                  aria-label={`Current moisture ${selectedDevice.moisture}%`}
-                >
-                  <div>
-                    <strong>{selectedDevice.moisture}</strong>
-                    <span>% moisture</span>
-                  </div>
-                </div>
-              )}
+            <Card className="dashboard-card gauge-card" role="region" aria-label="Current soil moisture">
+              <MoistureGauge value={selectedDevice?.moisture ?? null} />
               <p className="muted-copy">
                 Last reading: {formatTimestamp(selectedDevice?.createdAt ?? null, timezone)}
               </p>
-            </article>
+            </Card>
 
-            <article className="dashboard-card location-card">
+            <Card className="dashboard-card location-card" role="region" aria-label="Device location">
               <div className="card-heading compact-heading">
                 <div>
                   <p className="eyebrow">Device location</p>
@@ -669,7 +460,6 @@ export function DashboardClient({
                 )}
               </div>
               <LocationMap
-                theme={theme}
                 device={selectedDevice ? {
                   deviceId: selectedDevice.deviceId,
                   fieldName: selectedDevice.fieldName,
@@ -678,54 +468,72 @@ export function DashboardClient({
                 } : null}
               />
               <div className="metadata-row">
-                <span>Crop information</span>
-                <strong>Not provided by telemetry</strong>
+                <span>Crop type</span>
+                <strong>{selectedDevice?.cropType || "Not specified"}</strong>
               </div>
-            </article>
+            </Card>
           </div>
+
+          <section className="device-switcher" aria-label="Your devices">
+          <div className="device-tabs">
+            {devices.map((device) => (
+              <button
+                key={device.deviceId}
+                type="button"
+                className={`device-tab${device.deviceId === selectedDeviceId ? " is-selected" : ""}`}
+                aria-pressed={device.deviceId === selectedDeviceId}
+                onClick={() => {
+                  setSelectedDeviceId(device.deviceId);
+                }}
+              >
+                {device.fieldName || device.deviceId}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="device-add-button"
+              aria-label="Add device"
+              onClick={openDeviceForm}
+            >
+              <span aria-hidden="true"><FiPlus /></span>
+              <small>{devices.length} {devices.length === 1 ? "device" : "devices"}</small>
+            </button>
+          </div>
+          </section>
         </section>
 
-        <section className="dashboard-bottom-grid">
-          <article className="dashboard-card activity-card">
-            <div className="card-heading compact-heading">
-              <div>
-                <p className="eyebrow">Recent activity</p>
-                <h2>Latest uploads</h2>
-              </div>
-              <span className="device-pill">{totalReadings} in range</span>
-            </div>
-            {latestReading ? (
-              <div className="activity-reading">
-                <span className="activity-dot" aria-hidden="true" />
-                <div>
-                  <strong>{latestReading.deviceId}</strong>
-                  <p>{latestReading.message}</p>
-                </div>
-                <time dateTime={latestReading.createdAt ?? undefined}>
-                  {formatTimestamp(latestReading.createdAt, timezone)}
-                </time>
-              </div>
-            ) : (
-              <p className="muted-copy">No activity for the selected device and period.</p>
-            )}
-            <p className="source-note">
-              Upload source is not stored in the telemetry schema, so automatic and manual uploads cannot be distinguished.
-            </p>
-          </article>
-          <article className="dashboard-card account-card">
-            <p className="eyebrow">Account</p>
-            <h2>{user.name}</h2>
-            <p className="muted-copy">{user.email}</p>
-            <div className="account-detail">
-              <span>Access role</span>
-              <strong>{user.role.replace("_", " ")}</strong>
-            </div>
-            <div className="account-detail">
-              <span>Display timezone</span>
-              <strong>{timezone}</strong>
-            </div>
-          </article>
-        </section>
+        <DeviceRegistrationDialog
+          open={deviceFormOpen}
+          pending={deviceFormPending}
+          error={deviceFormError}
+          locationStatus={locationStatus}
+          deviceId={newDeviceId}
+          fieldName={newFieldName}
+          cropType={newCropType}
+          latitude={newLatitude}
+          longitude={newLongitude}
+          onDeviceIdChange={setNewDeviceId}
+          onFieldNameChange={setNewFieldName}
+          onCropTypeChange={setNewCropType}
+          onLatitudeChange={(latitude) => {
+            locationRequestIdRef.current += 1;
+            locationRequestStartedRef.current = true;
+            deviceCoordinatesRef.current.latitude = latitude;
+            setNewLatitude(latitude);
+            setLocationStatus("Using manually entered coordinates.");
+          }}
+          onLongitudeChange={(longitude) => {
+            locationRequestIdRef.current += 1;
+            locationRequestStartedRef.current = true;
+            deviceCoordinatesRef.current.longitude = longitude;
+            setNewLongitude(longitude);
+            setLocationStatus("Using manually entered coordinates.");
+          }}
+          onDetectLocation={detectDeviceLocation}
+          onClose={closeDeviceForm}
+          onSubmit={addDevice}
+        />
+
       </div>
     </main>
   );

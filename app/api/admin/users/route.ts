@@ -2,11 +2,11 @@ import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { db } from "@/index";
 import { user as userTable } from "@/db/schema";
-import { auth, authBaseOrigin } from "@/lib/auth";
+import { getAuth, getAuthBaseOrigin } from "@/lib/auth";
 import { canAssignRole, canManageUser } from "@/lib/auth/authorization";
 
 export async function GET() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getAuth().api.getSession({ headers: await headers() });
   if (!session) {
     return Response.json({ error: "Authentication required." }, { status: 401 });
   }
@@ -36,11 +36,11 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  if (request.headers.get("origin") !== authBaseOrigin) {
+  if (request.headers.get("origin") !== getAuthBaseOrigin()) {
     return Response.json({ error: "Forbidden." }, { status: 403 });
   }
 
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getAuth().api.getSession({ headers: await headers() });
   if (!session) {
     return Response.json({ error: "Authentication required." }, { status: 401 });
   }

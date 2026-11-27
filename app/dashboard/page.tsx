@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import Link from "next/link";
 import { Suspense } from "react";
 import "./dashboard.css";
@@ -30,6 +31,7 @@ export default function DashboardPage() {
 }
 
 async function DashboardContent() {
+  await connection();
   const session = await requireSession();
   const [preferences] = await db
     .select({

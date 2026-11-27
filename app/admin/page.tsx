@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import Link from "next/link";
 import { Suspense } from "react";
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -24,6 +25,7 @@ export default function AdminPage() {
 }
 
 async function AdminContent() {
+  await connection();
   const session = await requireRole("admin", "super_admin");
 
   return (

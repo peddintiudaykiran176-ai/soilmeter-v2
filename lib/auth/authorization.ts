@@ -1,12 +1,12 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { getAuth } from "@/lib/auth";
 
 export const userRoles = ["super_admin", "admin", "user"] as const;
 export type UserRole = (typeof userRoles)[number];
 
 export async function getCurrentSession() {
-  return auth.api.getSession({ headers: await headers() });
+  return getAuth().api.getSession({ headers: await headers() });
 }
 
 export async function requireSession() {

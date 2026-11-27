@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/index";
 import { dashboardPreferences } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { getAuth } from "@/lib/auth";
 
 const noStore = { "Cache-Control": "private, no-store" };
 const themes = ["light", "dark", "system"] as const;
@@ -27,7 +27,7 @@ function response(body: unknown, status = 200) {
 
 export async function GET(request: Request) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
+    const session = await getAuth().api.getSession({ headers: request.headers });
     if (!session) return response({ error: "Authentication required" }, 401);
 
     const [preferences] = await db
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
+    const session = await getAuth().api.getSession({ headers: request.headers });
     if (!session) return response({ error: "Authentication required" }, 401);
 
     let body: unknown;

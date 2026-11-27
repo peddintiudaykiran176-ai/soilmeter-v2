@@ -14,7 +14,7 @@ import {
 import { NextResponse } from "next/server";
 import { db } from "@/index";
 import { devices, soilTelemetry } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { getAuth } from "@/lib/auth";
 
 const PRIVATE_NO_STORE_HEADERS = {
   "Cache-Control": "private, no-store",
@@ -89,7 +89,7 @@ function serializeTelemetry(row: typeof soilTelemetry.$inferSelect) {
 }
 
 async function getSession(request: Request) {
-  return auth.api.getSession({ headers: request.headers });
+  return getAuth().api.getSession({ headers: request.headers });
 }
 
 function getTelemetryAccessCondition(userId: string): SQL {

@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/index";
 import { devices } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { getAuth } from "@/lib/auth";
 
 const noStore = { "Cache-Control": "private, no-store" };
 
@@ -18,7 +18,7 @@ function parseCoordinate(value: unknown): number | null | undefined {
 
 export async function POST(request: Request) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
+    const session = await getAuth().api.getSession({ headers: request.headers });
     if (!session) return response({ error: "Authentication required" }, 401);
 
     let body: unknown;

@@ -1,3 +1,5 @@
+import "server-only";
+
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 
@@ -7,4 +9,5 @@ if (!databaseUrl) {
 }
 
 const sql = neon(databaseUrl);
+export const neonSql = sql;
 export const db = drizzle({ client: sql });

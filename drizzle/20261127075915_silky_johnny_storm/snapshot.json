@@ -1,0 +1,331 @@
+{
+  "type": "diff",
+  "version": "10",
+  "dialect": "postgres",
+  "id": "3ff670df-10ce-4eb0-a17a-e33087008afc",
+  "prevIds": [
+    "ae461242-af24-41bc-bc3f-19af60c7576a"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "dashboard_preferences"
+      ],
+      "writes": [
+        "s|tbl|public.dashboard_preferences",
+        "n|tbl|public.dashboard_preferences",
+        "e|tbl|public.dashboard_preferences",
+        "n|rel|public.dashboard_preferences",
+        "n|type|public.dashboard_preferences",
+        "n|rel|public.dashboard_preferences_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "soil_telemetry",
+        "latitude"
+      ],
+      "writes": [
+        "s|col|public.soil_telemetry.latitude",
+        "n|col|public.soil_telemetry.latitude",
+        "e|col|public.soil_telemetry.latitude"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "soil_telemetry",
+        "longitude"
+      ],
+      "writes": [
+        "s|col|public.soil_telemetry.longitude",
+        "n|col|public.soil_telemetry.longitude",
+        "e|col|public.soil_telemetry.longitude"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "soil_telemetry",
+        "field_name"
+      ],
+      "writes": [
+        "s|col|public.soil_telemetry.field_name",
+        "n|col|public.soil_telemetry.field_name",
+        "e|col|public.soil_telemetry.field_name"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "dashboard_preferences"
+      ],
+      "writes": [
+        "s|fk|public.dashboard_preferences.dashboard_preferences_user_id_user_id_fkey",
+        "n|fk|public.dashboard_preferences.dashboard_preferences_user_id_user_id_fkey",
+        "e|fk|public.dashboard_preferences.dashboard_preferences_user_id_user_id_fkey",
+        "n|con|public.dashboard_preferences.dashboard_preferences_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.dashboard_preferences",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.dashboard_preferences.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    },
+    {
+      "statementType": "add_check",
+      "statementTarget": [
+        "table",
+        "public",
+        "soil_telemetry"
+      ],
+      "writes": [
+        "s|ck|public.soil_telemetry.soil_telemetry_latitude_range",
+        "n|ck|public.soil_telemetry.soil_telemetry_latitude_range",
+        "e|ck|public.soil_telemetry.soil_telemetry_latitude_range",
+        "n|con|public.soil_telemetry.soil_telemetry_latitude_range"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public",
+        "n|col|public.soil_telemetry.latitude"
+      ]
+    },
+    {
+      "statementType": "add_check",
+      "statementTarget": [
+        "table",
+        "public",
+        "soil_telemetry"
+      ],
+      "writes": [
+        "s|ck|public.soil_telemetry.soil_telemetry_longitude_range",
+        "n|ck|public.soil_telemetry.soil_telemetry_longitude_range",
+        "e|ck|public.soil_telemetry.soil_telemetry_longitude_range",
+        "n|con|public.soil_telemetry.soil_telemetry_longitude_range"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public",
+        "n|col|public.soil_telemetry.longitude"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "dashboard_preferences",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "dashboard_preferences",
+        "name": "user_id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "dashboard_preferences",
+        "name": "timezone",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "dashboard_preferences",
+        "name": "theme",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'system'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "dashboard_preferences",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "soil_telemetry",
+        "name": "latitude",
+        "type": "double precision",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "soil_telemetry",
+        "name": "longitude",
+        "type": "double precision",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "soil_telemetry",
+        "name": "field_name",
+        "type": "varchar(100)",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "dashboard_preferences",
+        "name": "dashboard_preferences_user_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "dashboard_preferences",
+        "name": "dashboard_preferences_pkey",
+        "columns": [
+          "user_id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "dashboard_preferences",
+        "name": "dashboard_preferences_theme_valid",
+        "value": "\"theme\" IN ('light', 'dark', 'system')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "soil_telemetry",
+        "name": "soil_telemetry_latitude_range",
+        "value": "\"latitude\" IS NULL OR (\"latitude\" >= -90 AND \"latitude\" <= 90)",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "soil_telemetry",
+        "name": "soil_telemetry_longitude_range",
+        "value": "\"longitude\" IS NULL OR (\"longitude\" >= -180 AND \"longitude\" <= 180)",
+        "entityType": "checks"
+      }
+    }
+  ]
+}

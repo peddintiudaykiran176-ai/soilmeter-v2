@@ -1,4 +1,13 @@
-import { and, count, desc, eq, gte, lt, type SQL } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  lte,
+  lt,
+  type SQL,
+} from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/index";
 import { soilTelemetry } from "@/db/schema";
@@ -10,6 +19,7 @@ const PRIVATE_NO_STORE_HEADERS = {
 const MAX_PAGE_NUMBER = 10_000;
 const MAX_DEVICE_ID_LENGTH = 50;
 const MAX_MESSAGE_LENGTH = 2_000;
+const MAX_PAGE_SIZE = 500;
 
 function jsonResponse(body: unknown, status = 200) {
   return NextResponse.json(body, {
@@ -45,6 +55,28 @@ function parseUtcDate(value: string | null): string | null | undefined {
   return date.toISOString();
 }
 
+function parseInstant(value: string | null): Date | null | undefined {
+  if (value === null) return null;
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) {
+    return undefined;
+  }
+  if (parseUtcDate(value.slice(0, 10)) === undefined) return undefined;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date : undefined;
+}
+
+function isValidLatitude(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= -90 && value <= 90;
+}
+
+function isValidLongitude(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= -180 && value <= 180;
+}
+
+function isValidMoisture(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100;
+}
+
 function serializeTelemetry(row: typeof soilTelemetry.$inferSelect) {
   return {
     ...row,
@@ -65,30 +97,67 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
+    if (searchParams.get("devices") === "1") {
+      const devices = await db
+        .selectDistinctOn([soilTelemetry.deviceId], {
+          deviceId: soilTelemetry.deviceId,
+          fieldName: soilTelemetry.fieldName,
+          latitude: soilTelemetry.latitude,
+          longitude: soilTelemetry.longitude,
+          moisture: soilTelemetry.moisture,
+          message: soilTelemetry.message,
+          createdAt: soilTelemetry.createdAt,
+        })
+        .from(soilTelemetry)
+        .where(eq(soilTelemetry.userId, session.user.id))
+        .orderBy(
+          soilTelemetry.deviceId,
+          desc(soilTelemetry.createdAt),
+          desc(soilTelemetry.id),
+        );
+      return jsonResponse({
+        devices: devices.map((device) => ({
+          ...device,
+          createdAt: device.createdAt?.toISOString() ?? null,
+        })),
+      });
+    }
+
     const rawDeviceId = searchParams.get("device_id");
     const deviceId = rawDeviceId?.trim() || null;
     const startDate = parseUtcDate(searchParams.get("start_date"));
     const endDate = parseUtcDate(searchParams.get("end_date"));
+    const startAt = parseInstant(searchParams.get("start_at"));
+    const endAt = parseInstant(searchParams.get("end_at"));
     const page = parsePositiveInteger(
       searchParams.get("page"),
       1,
       MAX_PAGE_NUMBER,
     );
-    const pageSize = parsePositiveInteger(searchParams.get("page_size"), 10, 100);
+    const pageSize = parsePositiveInteger(
+      searchParams.get("page_size"),
+      10,
+      MAX_PAGE_SIZE,
+    );
 
     if (
       (rawDeviceId !== null &&
         (!deviceId || deviceId.length > MAX_DEVICE_ID_LENGTH)) ||
       startDate === undefined ||
       endDate === undefined ||
+      startAt === undefined ||
+      endAt === undefined ||
+      (startAt !== null && startDate !== null) ||
+      (endAt !== null && endDate !== null) ||
       (startDate !== null && endDate !== null && startDate > endDate) ||
+      (startAt !== null && endAt !== null && startAt > endAt) ||
       page === null ||
       pageSize === null
     ) {
       return jsonResponse(
         {
           error:
-            "Invalid filters. Use a device_id of 1–50 characters, valid YYYY-MM-DD dates in order, page 1–10000, and page_size 1–100.",
+            `Invalid filters. Use a device_id of 1–50 characters, valid UTC instants or YYYY-MM-DD dates in order, page 1–10000, and page_size 1–${MAX_PAGE_SIZE}.`,
         },
         400,
       );
@@ -96,10 +165,14 @@ export async function GET(request: Request) {
 
     const conditions: SQL[] = [eq(soilTelemetry.userId, session.user.id)];
     if (deviceId) conditions.push(eq(soilTelemetry.deviceId, deviceId));
-    if (startDate) {
+    if (startAt) {
+      conditions.push(gte(soilTelemetry.createdAt, startAt));
+    } else if (startDate) {
       conditions.push(gte(soilTelemetry.createdAt, new Date(startDate)));
     }
-    if (endDate) {
+    if (endAt) {
+      conditions.push(lte(soilTelemetry.createdAt, endAt));
+    } else if (endDate) {
       const endDateExclusive = new Date(endDate);
       endDateExclusive.setUTCDate(endDateExclusive.getUTCDate() + 1);
       conditions.push(lt(soilTelemetry.createdAt, endDateExclusive));
@@ -160,10 +233,20 @@ export async function POST(request: Request) {
       );
     }
 
-    const { device_id, message, moisture = null } = body as {
+    const {
+      device_id,
+      message,
+      moisture = null,
+      latitude = null,
+      longitude = null,
+      field_name = null,
+    } = body as {
       device_id?: unknown;
       message?: unknown;
       moisture?: unknown;
+      latitude?: unknown;
+      longitude?: unknown;
+      field_name?: unknown;
     };
     if (
       typeof device_id !== "string" ||
@@ -184,13 +267,34 @@ export async function POST(request: Request) {
     }
     if (
       moisture !== null &&
-      (typeof moisture !== "number" || !Number.isFinite(moisture))
+      !isValidMoisture(moisture)
     ) {
       return jsonResponse(
-        { success: false, error: "moisture must be a finite number or null." },
+        { success: false, error: "moisture must be between 0 and 100 or null." },
         400,
       );
     }
+    const hasValidCoordinates =
+      isValidLatitude(latitude) && isValidLongitude(longitude);
+    const hasNoCoordinates = latitude === null && longitude === null;
+    if (
+      (!hasValidCoordinates && !hasNoCoordinates) ||
+      (field_name !== null &&
+        (typeof field_name !== "string" ||
+          field_name.trim().length === 0 ||
+          field_name.trim().length > 100))
+    ) {
+      return jsonResponse(
+        {
+          success: false,
+          error:
+            "Provide both valid GPS coordinates (latitude -90 to 90, longitude -180 to 180) and an optional field_name up to 100 characters.",
+        },
+        400,
+      );
+    }
+    const storedLatitude = hasValidCoordinates ? latitude : null;
+    const storedLongitude = hasValidCoordinates ? longitude : null;
 
     const [row] = await db
       .insert(soilTelemetry)
@@ -199,6 +303,9 @@ export async function POST(request: Request) {
         deviceId: device_id.trim(),
         message: message.trim(),
         moisture,
+        latitude: storedLatitude,
+        longitude: storedLongitude,
+        fieldName: typeof field_name === "string" ? field_name.trim() : null,
       })
       .returning();
 

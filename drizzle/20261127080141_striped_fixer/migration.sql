@@ -1,0 +1,1 @@
+ALTER TABLE "soil_telemetry" ADD CONSTRAINT "soil_telemetry_coordinates_pair" CHECK (("latitude" IS NULL AND "longitude" IS NULL) OR ("latitude" IS NOT NULL AND "longitude" IS NOT NULL));

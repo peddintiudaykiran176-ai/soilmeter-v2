@@ -1,0 +1,43 @@
+{
+  "type": "diff",
+  "version": "10",
+  "dialect": "postgres",
+  "id": "c7be1e27-96cd-442b-958e-c4c28c0a6637",
+  "prevIds": [
+    "3ff670df-10ce-4eb0-a17a-e33087008afc"
+  ],
+  "footprints": [
+    {
+      "statementType": "add_check",
+      "statementTarget": [
+        "table",
+        "public",
+        "soil_telemetry"
+      ],
+      "writes": [
+        "s|ck|public.soil_telemetry.soil_telemetry_coordinates_pair",
+        "n|ck|public.soil_telemetry.soil_telemetry_coordinates_pair",
+        "e|ck|public.soil_telemetry.soil_telemetry_coordinates_pair",
+        "n|con|public.soil_telemetry.soil_telemetry_coordinates_pair"
+      ],
+      "reads": [
+        "n|tbl|public.soil_telemetry",
+        "n|sch|public",
+        "n|col|public.soil_telemetry.latitude",
+        "n|col|public.soil_telemetry.longitude"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "soil_telemetry",
+        "name": "soil_telemetry_coordinates_pair",
+        "value": "(\"latitude\" IS NULL AND \"longitude\" IS NULL) OR (\"latitude\" IS NOT NULL AND \"longitude\" IS NOT NULL)",
+        "entityType": "checks"
+      }
+    }
+  ]
+}

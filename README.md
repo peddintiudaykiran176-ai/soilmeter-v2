@@ -82,12 +82,23 @@ Required in every environment:
 | `DATABASE_URL` | Neon PostgreSQL connection string; keep server-side only. |
 | `BETTER_AUTH_SECRET` | Unique high-entropy secret, 32+ characters. Generate with `openssl rand -base64 32`. |
 | `BETTER_AUTH_URL` | Canonical application origin for this deployment. |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Browser-visible key restricted to the Maps JavaScript API and your site origins. |
 | `AUTH_CLIENT_IP_HEADER` | Trusted header overwritten by the hosting proxy, for rate-limit client identification (defaults to `x-forwarded-for`). |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | TLS-enabled SMTP delivery for password-reset emails. |
 
 Never put these values in `NEXT_PUBLIC_*` variables or commit `.env`. Use a
 different secret and canonical URL for development, preview, and production.
 Password-reset requests fail closed if SMTP is not configured.
+
+### Google Maps setup
+
+In Google Cloud Console, select or create a project, enable billing, and enable
+the **Maps JavaScript API**. Create an API key and configure
+`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` in the deployment environment. Restrict the
+key by website referrer to the exact development and production origins (for
+example `https://your-app.example.com/*`), and restrict its API access to
+**Maps JavaScript API** only. Do not use an unrestricted key. Restart/redeploy
+after changing the environment variable.
 
 ### Production deployment
 
@@ -131,11 +142,13 @@ WHERE "email" = 'admin@example.com'
 ```
 
 `POST /api/telemetry` accepts JSON `{ "device_id": "...", "message": "...",
-"moisture": 42 }` with a Better Auth session cookie. New readings are linked
-to the signed-in user in Neon. `GET /api/telemetry` returns paginated history
-for that same user only. Apply the generated migration adding the nullable
-`user_id` ownership column and index before deploying this version; existing
-unowned readings remain in the database but are not returned to user sessions.
+"moisture": 42, "latitude": 51.5, "longitude": -0.12, "field_name": "North field" }`
+with a Better Auth session cookie. GPS coordinates and field name are optional;
+the dashboard displays an unavailable state until real coordinates are sent.
+New readings are linked to the signed-in user in Neon. `GET /api/telemetry`
+returns paginated history for that same user only. The telemetry schema does
+not store crop or upload-source metadata, so neither is fabricated or inferred.
+Apply the generated additive migrations before deploying.
 
 ### Routes
 

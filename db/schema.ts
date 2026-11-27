@@ -106,6 +106,9 @@ export const soilTelemetry = pgTable("soil_telemetry", {
   deviceId: varchar("device_id", { length: 50 }).notNull(),
   message: text("message").notNull(),
   moisture: doublePrecision("moisture"),
+  latitude: doublePrecision("latitude"),
+  longitude: doublePrecision("longitude"),
+  fieldName: varchar("field_name", { length: 100 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 }, (table) => [
   index("soil_telemetry_user_device_created_idx").on(
@@ -113,7 +116,39 @@ export const soilTelemetry = pgTable("soil_telemetry", {
     table.deviceId,
     table.createdAt,
   ),
+  check(
+    "soil_telemetry_latitude_range",
+    sql`${table.latitude} IS NULL OR (${table.latitude} >= -90 AND ${table.latitude} <= 90)`,
+  ),
+  check(
+    "soil_telemetry_longitude_range",
+    sql`${table.longitude} IS NULL OR (${table.longitude} >= -180 AND ${table.longitude} <= 180)`,
+  ),
+  check(
+    "soil_telemetry_coordinates_pair",
+    sql`(${table.latitude} IS NULL AND ${table.longitude} IS NULL) OR (${table.latitude} IS NOT NULL AND ${table.longitude} IS NOT NULL)`,
+  ),
 ]);
+
+export const dashboardPreferences = pgTable(
+  "dashboard_preferences",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => user.id, { onDelete: "cascade" }),
+    timezone: text("timezone"),
+    theme: text("theme").notNull().default("system"),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check(
+      "dashboard_preferences_theme_valid",
+      sql`${table.theme} IN ('light', 'dark', 'system')`,
+    ),
+  ],
+);
 
 export const schema = {
   
@@ -123,4 +158,5 @@ export const schema = {
   verification,
   rateLimit,
   soilTelemetry,
+  dashboardPreferences,
 };
